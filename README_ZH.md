@@ -1,4 +1,4 @@
-# Redis Distributed Lock
+# Redis 分布式锁
 
 [![GitHub forks](https://img.shields.io/github/forks/hunterhug/rlock.svg?style=social&label=Forks)](https://github.com/hunterhug/rlock/network)
 [![GitHub stars](https://img.shields.io/github/stars/hunterhug/rlock.svg?style=social&label=Stars)](https://github.com/hunterhug/rlock/stargazers)
@@ -6,31 +6,30 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/hunterhug/rlock)](https://goreportcard.com/report/github.com/hunterhug/rlock)
 [![GitHub issues](https://img.shields.io/github/issues/hunterhug/rlock.svg)](https://github.com/hunterhug/rlock/issues)
 
-[中文说明](/README_ZH.md)
+[English README](/README_EN.md)
 
-Why use distributed lock?
+为什么要使用分布式锁？
 
-1. Some program processes/services may competing for resources, they distributed deployed in different position at many machines, ensure free from side effects such dirty read/write, we should lock those resources before make logic action.
-2. Some crontab task may distributed deployed, we know they will run at the same time when time reach, ensure crontab task can execute one by one, we make a task lock! 
-3. Other Parallel security.
+1. 多个进程或服务竞争资源，而这些进程或服务又部署在多台机器，此时需要使用分布式锁，确保资源被正确地使用，否则可能出现副作用。
+2. 避免重复执行某一个动作，多台机器部署的同一个服务上都有相同定时任务，而定时任务只需执行一次，此时需要使用分布式锁，确保效率。
 
-Some cases: 1.avoid repeated order pay in E-commerce business, we lock the order. 2.multi copy of crontab statistical task run at night, we lock task.
+具体业务：电商业务避免重复支付，微服务上多副本服务的夜间定时统计。
 
-We are support:
+分布式锁支持：
 
-1. Single Mode Redis: Stand-alone Redis.
-2. Sentinel Mode Redis: Pseudo Cluster Redis.
+1. 单机模式的 Redis。
+2. 哨兵模式的 Redis。
 
-## How to use
+## 如何使用
 
-Simple：
+很简单，执行：
 
 ```
 go get -v github.com/hunterhug/rlock
 ```
 
 
-## Example
+## 例子
 
 ```go
 package main
