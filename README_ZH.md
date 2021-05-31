@@ -18,7 +18,11 @@
 分布式锁支持：
 
 1. 单机模式的 Redis。
-2. 哨兵模式的 Redis。
+2. 哨兵模式的 Redis。说明：该模式也是属于单机，Redis 是一主（Master）多从（Slave），只不过有哨兵机制，主挂掉后哨兵发现后可以将从提升到主。
+
+单机和哨兵模式的 Redis 无法做到锁的高可用，比如 Redis 挂掉了可能导致服务不可用（单机），锁混乱（哨兵），但对可靠性要求没那么高的，我们还是可以使用单机 Redis，毕竟大多数情况都比较稳定。
+
+对可靠性要求较高，要求高可用，官方给出了 Redlock 算法，利用多台主（Master）来逐一加锁，半数加锁成功就认为成功，略显繁琐，要维护多套 Redis，我建议直接使用 etcd 分布式锁。
 
 ## 如何使用
 
@@ -35,15 +39,20 @@ go get -v github.com/hunterhug/rlock
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/hunterhug/rlock"
+	"time"
 )
 
 func main() {
+	rlock.SetDebug()
+
 	// 1. config redis
+	// 1. 配置Redis
 	redisHost := "127.0.0.1:6379"
 	redisDb := 0
-	redisPass := "hunterhug" // may redis has password
+	redisPass := "root" // may redis has password
 	config := rlock.NewRedisSingleModeConfig(redisHost, redisDb, redisPass)
 	pool, err := rlock.NewRedisPool(config)
 	if err != nil {
@@ -52,39 +61,56 @@ func main() {
 	}
 
 	// 2. new a lock factory
+	// 2. 新建一个锁工厂
 	lockFactory := rlock.New(pool)
-	lockFactory.SetRetryCount(3).SetRetryMillSecondDelay(200) // set retry time and delay mill second
+
+	// set retry time and delay mill second
+	// 设置锁重试次数和尝试等待时间，表示加锁不成功等200毫秒再尝试，总共尝试3次，设置负数表示一直尝试，会堵住
+	lockFactory.SetRetryCount(3).SetRetryMillSecondDelay(200)
+
+	// keep alive will auto extend the expire time of lock
+	// 自动续命锁
+	lockFactory.SetKeepAlive(true)
 
 	// 3. lock a resource
-	resourceName := "gold"
-	expireMillSecond := 10 * 1000 // 10s
-	lock, err := lockFactory.Lock(resourceName, expireMillSecond)
+	// 3. 锁住资源，资源名为myLock
+	resourceName := "myLock"
+
+	// 10s
+	// 过期时间10秒
+	expireMillSecond := 10 * 1000
+	lock, err := lockFactory.Lock(context.Background(), resourceName, expireMillSecond)
 	if err != nil {
 		fmt.Println("lock err:", err.Error())
 		return
 	}
 
 	// lock empty point not lock
+	// 锁为空，表示加锁失败
 	if lock == nil {
 		fmt.Println("lock err:", "can not lock")
 		return
 	}
 
 	// add lock success
+	// 加锁成功
 	fmt.Printf("add lock success:%#v\n", lock)
 
+	time.Sleep(10 * time.Second)
 
 	// 4. unlock a resource
-	isUnlock, err := lockFactory.UnLock(*lock)
+	// 4. 解锁
+	isUnlock, err := lockFactory.UnLock(context.Background(), lock)
 	if err != nil {
 		fmt.Println("lock err:", err.Error())
 		return
 	}
 
-	fmt.Println("lock unlock:", isUnlock)
+	fmt.Printf("lock unlock: %v, %#v\n", isUnlock, lock)
 
-	// unlock a resource again
-	isUnlock, err = lockFactory.UnLock(*lock)
+	// unlock a resource again no effect side
+	// 上面已经解锁了，可以多次解锁
+	isUnlock, err = lockFactory.UnLock(context.Background(), lock)
 	if err != nil {
 		fmt.Println("lock err:", err.Error())
 		return
@@ -92,5 +118,4 @@ func main() {
 
 	fmt.Println("lock unlock:", isUnlock)
 }
-
 ```

@@ -1,8 +1,9 @@
-github.com/gofrs/uuid v3.3.0+incompatible h1:8K4tyRfvU1CYPgJsveYFQMhpFd/wXNM7iK6rR7UHz84=
 github.com/gofrs/uuid v3.3.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
+github.com/gofrs/uuid v4.0.0+incompatible h1:1SD/1F5pU8p29ybwgQSwpQk+mwdRrXCYuPhW6m+TnJw=
+github.com/gofrs/uuid v4.0.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
 github.com/gomodule/redigo v2.0.0+incompatible h1:K/R+8tc58AaqLkqG2Ol3Qk+DR/TlNuhuh457pBFPtt0=
 github.com/gomodule/redigo v2.0.0+incompatible/go.mod h1:B4C85qUVwatsJoIUNIfCRsp7qO0iAmpGFZ4EELWSbC4=
-github.com/hunterhug/gosession v0.0.4 h1:phWZDRY1RMH2AwDICcN4CPxoAsB5G2PrkOa5ClwKfO4=
-github.com/hunterhug/gosession v0.0.4/go.mod h1:tkGcZIHA93JvkYlo8atH+1BxROxElJ+XfkmyDSrEMcE=
-github.com/hunterhug/marmot v1.0.4 h1:6LkHGm1CvstTutTTDM6sOxcdUENtSFF566h54a82Qlg=
-github.com/hunterhug/marmot v1.0.4/go.mod h1:BRbHaZhn1iPx6perMa2qeB7aHYVLZ5V+jol+7++2mX0=
+github.com/hunterhug/gosession v1.0.0 h1:Wxa9i0bA4uzdXAvjn1UCtSwirht8h0X0kTBuQDDLYO4=
+github.com/hunterhug/gosession v1.0.0/go.mod h1:tkGcZIHA93JvkYlo8atH+1BxROxElJ+XfkmyDSrEMcE=
+github.com/hunterhug/marmot v1.0.6 h1:XJjy6plZT8r5u8dIHNlvstTJXLX7FYbVjKsRQddSdiI=
+github.com/hunterhug/marmot v1.0.6/go.mod h1:kWh9VgqwMhlUH9DRIEQI6QYKkrpwpch5FO0/rk+J27g=
