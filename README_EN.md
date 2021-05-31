@@ -3,7 +3,6 @@
 [![GitHub forks](https://img.shields.io/github/forks/hunterhug/rlock.svg?style=social&label=Forks)](https://github.com/hunterhug/rlock/network)
 [![GitHub stars](https://img.shields.io/github/stars/hunterhug/rlock.svg?style=social&label=Stars)](https://github.com/hunterhug/rlock/stargazers)
 [![GitHub last commit](https://img.shields.io/github/last-commit/hunterhug/rlock.svg)](https://github.com/hunterhug/rlock)
-[![Go Report Card](https://goreportcard.com/badge/github.com/hunterhug/rlock)](https://goreportcard.com/report/github.com/hunterhug/rlock)
 [![GitHub issues](https://img.shields.io/github/issues/hunterhug/rlock.svg)](https://github.com/hunterhug/rlock/issues)
 
 [中文说明](/README_ZH.md)
