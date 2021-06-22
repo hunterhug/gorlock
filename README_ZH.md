@@ -1,11 +1,11 @@
-# Redis 分布式锁
+# Redis Golang分布式锁
 
 [![GitHub forks](https://img.shields.io/github/forks/hunterhug/gorlock.svg?style=social&label=Forks)](https://github.com/hunterhug/gorlock/network)
 [![GitHub stars](https://img.shields.io/github/stars/hunterhug/gorlock.svg?style=social&label=Stars)](https://github.com/hunterhug/gorlock/stargazers)
 [![GitHub last commit](https://img.shields.io/github/last-commit/hunterhug/gorlock.svg)](https://github.com/hunterhug/gorlock)
 [![GitHub issues](https://img.shields.io/github/issues/hunterhug/gorlock.svg)](https://github.com/hunterhug/gorlock/issues)
 
-[English README](/README_EN.md)
+[English README](/README.md)
 
 为什么要使用分布式锁？
 
@@ -31,6 +31,7 @@
 go get -v github.com/hunterhug/gorlock
 ```
 
+本库支持无感知锁续命，解决业务处理时间过长，锁被重入的问题。
 
 ## 例子
 

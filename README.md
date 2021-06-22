@@ -1,4 +1,4 @@
-# Redis Distributed Lock
+# Redis Distributed Lock By Golang
 
 [![GitHub forks](https://img.shields.io/github/forks/hunterhug/gorlock.svg?style=social&label=Forks)](https://github.com/hunterhug/gorlock/network)
 [![GitHub stars](https://img.shields.io/github/stars/hunterhug/gorlock.svg?style=social&label=Stars)](https://github.com/hunterhug/gorlock/stargazers)
@@ -28,6 +28,7 @@ Simple：
 go get -v github.com/hunterhug/gorlock
 ```
 
+Support auto keepalive.
 
 ## Example
 
