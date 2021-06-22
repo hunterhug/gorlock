@@ -1,9 +1,9 @@
 # Redis 分布式锁
 
-[![GitHub forks](https://img.shields.io/github/forks/hunterhug/rlock.svg?style=social&label=Forks)](https://github.com/hunterhug/rlock/network)
-[![GitHub stars](https://img.shields.io/github/stars/hunterhug/rlock.svg?style=social&label=Stars)](https://github.com/hunterhug/rlock/stargazers)
-[![GitHub last commit](https://img.shields.io/github/last-commit/hunterhug/rlock.svg)](https://github.com/hunterhug/rlock)
-[![GitHub issues](https://img.shields.io/github/issues/hunterhug/rlock.svg)](https://github.com/hunterhug/rlock/issues)
+[![GitHub forks](https://img.shields.io/github/forks/hunterhug/gorlock.svg?style=social&label=Forks)](https://github.com/hunterhug/gorlock/network)
+[![GitHub stars](https://img.shields.io/github/stars/hunterhug/gorlock.svg?style=social&label=Stars)](https://github.com/hunterhug/gorlock/stargazers)
+[![GitHub last commit](https://img.shields.io/github/last-commit/hunterhug/gorlock.svg)](https://github.com/hunterhug/gorlock)
+[![GitHub issues](https://img.shields.io/github/issues/hunterhug/gorlock.svg)](https://github.com/hunterhug/gorlock/issues)
 
 [English README](/README_EN.md)
 
@@ -28,7 +28,7 @@
 很简单，执行：
 
 ```
-go get -v github.com/hunterhug/rlock
+go get -v github.com/hunterhug/gorlock
 ```
 
 
@@ -40,20 +40,20 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/hunterhug/rlock"
+	"github.com/hunterhug/gorlock"
 	"time"
 )
 
 func main() {
-	rlock.SetDebug()
+	gorlock.SetDebug()
 
 	// 1. config redis
 	// 1. 配置Redis
 	redisHost := "127.0.0.1:6379"
 	redisDb := 0
 	redisPass := "root" // may redis has password
-	config := rlock.NewRedisSingleModeConfig(redisHost, redisDb, redisPass)
-	pool, err := rlock.NewRedisPool(config)
+	config := gorlock.NewRedisSingleModeConfig(redisHost, redisDb, redisPass)
+	pool, err := gorlock.NewRedisPool(config)
 	if err != nil {
 		fmt.Println("redis init err:", err.Error())
 		return
@@ -61,7 +61,7 @@ func main() {
 
 	// 2. new a lock factory
 	// 2. 新建一个锁工厂
-	lockFactory := rlock.New(pool)
+	lockFactory := gorlock.New(pool)
 
 	// set retry time and delay mill second
 	// 设置锁重试次数和尝试等待时间，表示加锁不成功等200毫秒再尝试，总共尝试3次，设置负数表示一直尝试，会堵住

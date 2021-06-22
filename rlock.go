@@ -1,9 +1,9 @@
 /*
-	All right reserved：https://github.com/hunterhug/rlock at 2020
+	All right reserved：https://github.com/hunterhug/gorlock at 2020
 	Attribution-NonCommercial-NoDerivatives 4.0 International
 	You can use it for education only but can't make profits for any companies and individuals!
 */
-package rlock // import "github.com/hunterhug/rlock"
+package gorlock // import "github.com/hunterhug/gorlock"
 
 import (
 	"context"
@@ -61,7 +61,8 @@ type Lock struct {
 	ResourceName                string
 	RandomKey                   string
 	IsUnlock                    bool
-	closeChan                   chan string
+	closeChan                   chan struct{}
+	closeChanHasBeenFull        bool
 	isKeepAlive                 bool
 	mutex                       sync.Mutex
 }
@@ -193,7 +194,7 @@ func (s *RedisLockFactory) Lock(ctx context.Context, resourceName string, lockMi
 			lock.CreateMillSecondTime = time.Now().UnixNano() / 1e6
 			if s.isKeepAlive {
 				lock.isKeepAlive = true
-				lock.closeChan = make(chan string)
+				lock.closeChan = make(chan struct{})
 				go s.keepAlive(lock)
 			}
 			return lock, nil
@@ -216,7 +217,10 @@ func (s *RedisLockFactory) UnLock(ctx context.Context, lock *Lock) (isUnLock boo
 	}
 
 	if lock.isKeepAlive {
-		lock.closeChan <- "close"
+		if !lock.closeChanHasBeenFull {
+			lock.closeChan <- struct{}{}
+			lock.closeChanHasBeenFull = true
+		}
 	} else {
 		lock.UnlockMillSecondTime = time.Now().UnixNano() / 1e6
 		lock.IsUnlock = true

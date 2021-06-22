@@ -1,4 +1,4 @@
-module github.com/hunterhug/rlock
+module github.com/hunterhug/gorlock
 
 go 1.15
 

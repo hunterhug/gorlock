@@ -3,20 +3,20 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/hunterhug/rlock"
+	"github.com/hunterhug/gorlock"
 	"time"
 )
 
 func main() {
-	rlock.SetDebug()
+	gorlock.SetDebug()
 
 	// 1. config redis
 	// 1. 配置Redis
 	redisHost := "127.0.0.1:6379"
 	redisDb := 0
 	redisPass := "root" // may redis has password
-	config := rlock.NewRedisSingleModeConfig(redisHost, redisDb, redisPass)
-	pool, err := rlock.NewRedisPool(config)
+	config := gorlock.NewRedisSingleModeConfig(redisHost, redisDb, redisPass)
+	pool, err := gorlock.NewRedisPool(config)
 	if err != nil {
 		fmt.Println("redis init err:", err.Error())
 		return
@@ -24,7 +24,7 @@ func main() {
 
 	// 2. new a lock factory
 	// 2. 新建一个锁工厂
-	lockFactory := rlock.New(pool)
+	lockFactory := gorlock.New(pool)
 
 	// set retry time and delay mill second
 	// 设置锁重试次数和尝试等待时间，表示加锁不成功等200毫秒再尝试，总共尝试3次，设置负数表示一直尝试，会堵住
