@@ -31,9 +31,10 @@ func SetDebug() {
 }
 
 const (
-	DefaultRetryCount           = 0
-	DefaultUnlockRetryCount     = 3
-	DefaultRetryMillSecondDelay = 200
+	DefaultRetryCount                 = 3
+	DefaultUnlockRetryCount           = 3
+	DefaultRetryMillSecondDelay       = 200
+	DefaultUnlockRetryMillSecondDelay = 200
 )
 
 var (
@@ -73,7 +74,7 @@ func New(pool *redis.Pool) *RedisLockFactory {
 		retryLockTryCount:          DefaultRetryCount,
 		retryLockMillSecondDelay:   DefaultRetryMillSecondDelay,
 		retryUnLockTryCount:        DefaultUnlockRetryCount,
-		retryUnLockMillSecondDelay: DefaultRetryMillSecondDelay,
+		retryUnLockMillSecondDelay: DefaultUnlockRetryMillSecondDelay,
 	}
 }
 
@@ -115,10 +116,10 @@ func (s *RedisLockFactory) SetRetryCount(c int64) *RedisLockFactory {
 }
 
 func (s *RedisLockFactory) SetUnLockRetryCount(c int64) *RedisLockFactory {
-	if c <= 0 {
+	if c < 0 {
 		c = DefaultUnlockRetryCount
 	}
-	s.retryLockTryCount = c
+	s.retryUnLockTryCount = c
 	return s
 }
 
@@ -139,7 +140,7 @@ func (s *RedisLockFactory) SetUnLockRetryMillSecondDelay(c int64) *RedisLockFact
 	if c < 0 {
 		c = DefaultRetryMillSecondDelay
 	}
-	s.retryLockMillSecondDelay = c
+	s.retryUnLockMillSecondDelay = c
 	return s
 }
 
@@ -229,7 +230,7 @@ func (s *RedisLockFactory) UnLock(ctx context.Context, lock *Lock) (isUnLock boo
 	conn := s.pool.Get()
 	defer conn.Close()
 
-	retry := s.retryUnLockTryCount
+	retry := s.retryUnLockTryCount + 1
 
 	for retry > 0 {
 		select {
