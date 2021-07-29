@@ -34,7 +34,7 @@ go get -v github.com/hunterhug/gorlock
 
 本库支持无感知锁续命，解决业务处理时间过长，锁被重入的问题:
 
-```
+```go
 // LockFactory is main interface
 type LockFactory interface {
 	SetRetryCount(c int64) LockFactory

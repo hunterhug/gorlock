@@ -31,7 +31,7 @@ go get -v github.com/hunterhug/gorlock
 
 Support auto keepAlive:
 
-```
+```go
 // LockFactory is main interface
 type LockFactory interface {
 	SetRetryCount(c int64) LockFactory
