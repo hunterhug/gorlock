@@ -14,7 +14,7 @@ func main() {
 	// 1. 配置Redis
 	redisHost := "127.0.0.1:6379"
 	redisDb := 0
-	redisPass := "root" // may redis has password
+	redisPass := "hunterhug" // may redis has password
 	config := gorlock.NewRedisSingleModeConfig(redisHost, redisDb, redisPass)
 	pool, err := gorlock.NewRedisPool(config)
 	if err != nil {
@@ -57,6 +57,10 @@ func main() {
 	// add lock success
 	// 加锁成功
 	fmt.Printf("add lock success:%#v\n", lock)
+
+	// wait lock release
+	// 可以等待锁被释放
+	//<-lockFactory.Done(lock)
 
 	time.Sleep(3 * time.Second)
 
