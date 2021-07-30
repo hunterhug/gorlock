@@ -22,7 +22,7 @@
 
 单机和哨兵模式的 Redis 无法做到锁的高可用，比如 Redis 挂掉了可能导致服务不可用（单机），锁混乱（哨兵），但对可靠性要求没那么高的，我们还是可以使用单机 Redis，毕竟大多数情况都比较稳定。
 
-对可靠性要求较高，要求高可用，官方给出了 `Redlock` 算法，利用多台主（Master）来逐一加锁，半数加锁成功就认为成功，略显繁琐，要维护多套 Redis，我建议直接使用 etcd 分布式锁。
+对可靠性要求较高，要求高可用，官方给出了 `Redlock` 算法，利用多台主（`Redis Master`）来逐一加锁，半数加锁成功就认为成功，因为要维护多套 `Redis`，略显繁琐。真真需要高可用，我建议使用 `etcd` 官方实现的[分布式锁](https://github.com/etcd-io/etcd/blob/main/tests/integration/clientv3/concurrency/example_mutex_test.go) 。
 
 ## 如何使用
 
@@ -32,7 +32,7 @@
 go get -v github.com/hunterhug/gorlock
 ```
 
-本库支持无感知锁续命，解决业务处理时间过长，锁被重入的问题:
+本库支持无感知锁续命，你只要开启 `KeepAlive`，可以解决业务处理时间过长，导致锁超时，而被其他人抢占重入的问题:
 
 ```go
 // LockFactory is main interface
