@@ -6,7 +6,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/hunterhug/gorlock.svg)](https://github.com/hunterhug/gorlock/issues)
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
-[English README](/README.md)
+[English README](README.md)
 
 为什么要使用分布式锁？
 
@@ -52,13 +52,13 @@ type LockFactory interface {
 
 // LockFactoryCore is core interface
 type LockFactoryCore interface {
-	// Lock lock resource default keepAlive depend on LockFactory
+	// Lock ,lock resource default keepAlive depend on LockFactory
 	Lock(ctx context.Context, resourceName string, lockMillSecond int) (lock *Lock, err error)
 	// LockForceKeepAlive lock resource force keepAlive
 	LockForceKeepAlive(ctx context.Context, resourceName string, lockMillSecond int) (lock *Lock, err error)
 	// LockForceNotKeepAlive lock resource force not keepAlive
 	LockForceNotKeepAlive(ctx context.Context, resourceName string, lockMillSecond int) (lock *Lock, err error)
-	// UnLock unlock resource
+	// UnLock ,unlock resource
 	UnLock(ctx context.Context, lock *Lock) (isUnLock bool, err error)
 	// Done asynchronous see lock whether is release
 	Done(lock *Lock) chan error
@@ -66,6 +66,8 @@ type LockFactoryCore interface {
 ```
 
 核心操作，就是建一个锁工厂，然后使用接口契约中的方法来生成锁，并操作这把锁。
+
+温馨提示：如果你使用了续命锁，必须调用 `defer UnLock()`，否则将会一直续命，导致内存泄漏。一旦调用 `UnLock()` 可能会操作 `Redis` 失败，但是续命的循环将会终结掉，最终锁还是会超时释放掉，不需要担忧。
 
 ## 例子
 

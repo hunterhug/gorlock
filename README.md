@@ -6,12 +6,12 @@
 [![GitHub issues](https://img.shields.io/github/issues/hunterhug/gorlock.svg)](https://github.com/hunterhug/gorlock/issues)
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
-[中文说明](/README_ZH.md)
+[中文说明](README_ZH.md)
 
 Why use distributed lock?
 
-1. Some program processes/services may competing for resources, they distributed deployed in different position at many machines, ensure free from side effects such dirty read/write, we should lock those resources before make logic action.
-2. Some crontab task may distributed deployed, we know they will run at the same time when time reach, ensure crontab task can execute one by one, we make a task lock! 
+1. Some program processes/services may compete for resources, they distributed deployed in different position at many machines, ensure free from side effects such dirty read/write, we should lock those resources before make logic action.
+2. Some crontab task may distribute deployed, we know they will run at the same time when time reach, ensure crontab task can execute one by one, we make a task lock! 
 3. Other Parallel security.
 
 Some cases: 1.avoid repeated order pay in E-commerce business, we lock the order. 2.multi copy of crontab statistical task run at night, we lock task.
@@ -49,18 +49,20 @@ type LockFactory interface {
 
 // LockFactoryCore is core interface
 type LockFactoryCore interface {
-	// Lock lock resource default keepAlive depend on LockFactory
+	// Lock ,lock resource default keepAlive depend on LockFactory
 	Lock(ctx context.Context, resourceName string, lockMillSecond int) (lock *Lock, err error)
 	// LockForceKeepAlive lock resource force keepAlive
 	LockForceKeepAlive(ctx context.Context, resourceName string, lockMillSecond int) (lock *Lock, err error)
 	// LockForceNotKeepAlive lock resource force not keepAlive
 	LockForceNotKeepAlive(ctx context.Context, resourceName string, lockMillSecond int) (lock *Lock, err error)
-	// UnLock unlock resource
+	// UnLock ,unlock resource
 	UnLock(ctx context.Context, lock *Lock) (isUnLock bool, err error)
 	// Done asynchronous see lock whether is release
 	Done(lock *Lock) chan error
 }
 ```
+
+If you keepAlive the lock, you must call `defer UnLock()` every time you make a Lock.
 
 ## Example
 
