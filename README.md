@@ -58,7 +58,7 @@ type LockFactoryCore interface {
 	// UnLock unlock resource
 	UnLock(ctx context.Context, lock *Lock) (isUnLock bool, err error)
 	// Done asynchronous see lock whether is release
-	Done(lock *Lock) chan struct{}
+	Done(lock *Lock) chan error
 }
 ```
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/gomodule/redigo/redis"
+	"github.com/hunterhug/gosession"
 	"github.com/hunterhug/gosession/kv"
 	"sync"
 	"time"
@@ -39,13 +40,13 @@ type LockFactory interface {
 
 // LockFactoryCore is core interface
 type LockFactoryCore interface {
-	// Lock lock resource default keepAlive depend on LockFactory
+	// Lock ,lock resource default keepAlive depend on LockFactory
 	Lock(ctx context.Context, resourceName string, lockMillSecond int) (lock *Lock, err error)
 	// LockForceKeepAlive lock resource force keepAlive
 	LockForceKeepAlive(ctx context.Context, resourceName string, lockMillSecond int) (lock *Lock, err error)
 	// LockForceNotKeepAlive lock resource force not keepAlive
 	LockForceNotKeepAlive(ctx context.Context, resourceName string, lockMillSecond int) (lock *Lock, err error)
-	// UnLock unlock resource
+	// UnLock ,unlock resource
 	UnLock(ctx context.Context, lock *Lock) (isUnLock bool, err error)
 	// Done asynchronous see lock whether is release
 	Done(lock *Lock) chan struct{}
@@ -214,7 +215,7 @@ func (s *redisLockFactory) GetUnLockRetryCount() int64 {
 }
 
 // SetKeepAlive keep alive the lock
-// useful when your work waste a lot time, you can keep lock alive prevent others grab your lock
+// useful when your work waste a lot of time, you can keep lock alive prevent others grab your lock
 func (s *redisLockFactory) SetKeepAlive(isKeepAlive bool) LockFactory {
 	s.isKeepAlive = isKeepAlive
 	return s
@@ -237,7 +238,7 @@ func (s *redisLockFactory) GetRetryMillSecondDelay() int64 {
 	return s.retryLockMillSecondDelay
 }
 
-// SetUnLockRetryMillSecondDelay retry must delay some times
+// SetUnLockRetryMillSecondDelay retry must delay sometimes
 func (s *redisLockFactory) SetUnLockRetryMillSecondDelay(c int64) LockFactory {
 	if c < 0 {
 		c = defaultRetryMillSecondDelay
@@ -250,7 +251,7 @@ func (s *redisLockFactory) GetUnLockRetryMillSecondDelay() int64 {
 	return s.retryUnLockMillSecondDelay
 }
 
-// Lock lock the resource with lockMillSecond TTL(Time to Live) time
+// Lock ,lock the resource with lockMillSecond TTL(Time to Live) time
 // take context.Context to control time out lock when try many times
 func (s *redisLockFactory) Lock(ctx context.Context, resourceName string, lockMillSecond int) (lock *Lock, err error) {
 	return s.lock(ctx, resourceName, lockMillSecond, true, false)
@@ -279,7 +280,7 @@ func (s *redisLockFactory) lock(ctx context.Context, resourceName string, lockMi
 	// ttl add one second for magic
 	lockTime := lockMillSecond + 1
 
-	randomKey := GetGUID()
+	randomKey := gosession.GetGUID()
 	retry := s.retryLockTryCount + 1
 
 	for retry > 0 || retry <= 0 {
@@ -301,7 +302,7 @@ func (s *redisLockFactory) lock(ctx context.Context, resourceName string, lockMi
 					// redis inner err
 
 					// debug you can SetLogLevel("DEBUG")
-					logger.Debugf("lock start in %v lock %s with random key:%s, expire: %d ms err:%s", beginTime, resourceName, randomKey, lockMillSecond, err.Error())
+					Logger.Debugf("lock start in %v lock %s with random key:%s, expire: %d ms err:%s", beginTime, resourceName, randomKey, lockMillSecond, err.Error())
 
 					// retry again
 					if retry != 0 {
@@ -319,7 +320,7 @@ func (s *redisLockFactory) lock(ctx context.Context, resourceName string, lockMi
 
 			if !success {
 				// lock is hold by others
-				logger.Debugf("lock start in %v lock %s with random key:%s, expire: %d ms not lock", beginTime, resourceName, randomKey, lockMillSecond)
+				Logger.Debugf("lock start in %v lock %s with random key:%s, expire: %d ms not lock", beginTime, resourceName, randomKey, lockMillSecond)
 				if retry != 0 {
 					// try again
 					time.Sleep(time.Duration(s.retryLockMillSecondDelay) * time.Millisecond)
@@ -362,7 +363,7 @@ func (s *redisLockFactory) lock(ctx context.Context, resourceName string, lockMi
 	return nil, LockEmptyError
 }
 
-// UnLock unlock the resource, but now we should pass variable lock Lock into func but not resource name
+// UnLock ,unlock the resource, but now we should pass variable "lock Lock" into func but not resource name
 // suggest call defer UnLock() after Lock()
 func (s *redisLockFactory) UnLock(ctx context.Context, lock *Lock) (isUnLock bool, err error) {
 	if lock == nil {
@@ -381,7 +382,7 @@ func (s *redisLockFactory) UnLock(ctx context.Context, lock *Lock) (isUnLock boo
 	lock.IsClose = true
 
 	if lock.OpenKeepAlive {
-		logger.Debug("UnLock send signal to keepAlive ask game over")
+		Logger.Debug("UnLock send signal to keepAlive ask game over")
 
 		// will block util keepAlive deal
 		lock.closeChan <- struct{}{}
@@ -389,17 +390,17 @@ func (s *redisLockFactory) UnLock(ctx context.Context, lock *Lock) (isUnLock boo
 		keepAliveHasBeenClose := <-lock.keepAliveDealCloseChan
 
 		if keepAliveHasBeenClose {
-			logger.Debugf("UnLock receive signal to keepAlive response keepAliveHasBeenClose=%v UnLock direct return", keepAliveHasBeenClose)
+			Logger.Debugf("UnLock receive signal to keepAlive response keepAliveHasBeenClose=%v UnLock direct return", keepAliveHasBeenClose)
 			return true, nil
 		}
 
-		logger.Debugf("UnLock receive signal to keepAlive response keepAliveHasBeenClose=%v", keepAliveHasBeenClose)
+		Logger.Debugf("UnLock receive signal to keepAlive response keepAliveHasBeenClose=%v", keepAliveHasBeenClose)
 
 	} else {
 		lock.IsUnlock = true
 		lock.UnlockMillSecondTime = time.Now().UnixNano() / 1e6
 
-		// close close chan
+		// close a close chan
 		close(lock.closeChan)
 
 		// unlock chan send
@@ -425,7 +426,7 @@ func (s *redisLockFactory) UnLock(ctx context.Context, lock *Lock) (isUnLock boo
 			retry -= 1
 			rep, err := redis.Int64(luaDelScript.Do(conn, lock.ResourceName, lock.RandomKey))
 			if err != nil {
-				logger.Debugf("UnLock start in %v unlock %s with random key:%s, err:%s", beginTime, lock.ResourceName, lock.RandomKey, err.Error())
+				Logger.Debugf("UnLock start in %v unlock %s with random key:%s, err:%s", beginTime, lock.ResourceName, lock.RandomKey, err.Error())
 				if retry != 0 {
 					time.Sleep(time.Duration(s.retryUnLockMillSecondDelay) * time.Millisecond)
 					continue
@@ -435,7 +436,7 @@ func (s *redisLockFactory) UnLock(ctx context.Context, lock *Lock) (isUnLock boo
 
 			if rep != 1 {
 				// no err but the lock is not exist, may be expire or grab by others
-				logger.Debugf("UnLock start in %v unlock %s with random key:%s not unlock", beginTime, lock.ResourceName, lock.RandomKey)
+				Logger.Debugf("UnLock start in %v unlock %s with random key:%s not unlock", beginTime, lock.ResourceName, lock.RandomKey)
 				return false, nil
 			}
 
@@ -447,7 +448,7 @@ func (s *redisLockFactory) UnLock(ctx context.Context, lock *Lock) (isUnLock boo
 	return false, LockEmptyError
 }
 
-func (s *redisLockFactory) keepAlive(lock *Lock) {
+func (s *redisLockFactory) keepAliveSendToRedis(lock *Lock) (int64, error) {
 	conn := s.pool.Get()
 	defer func(conn redis.Conn) {
 		err := conn.Close()
@@ -455,7 +456,11 @@ func (s *redisLockFactory) keepAlive(lock *Lock) {
 			// ignore
 		}
 	}(conn)
+	rep, err := redis.Int64(luaExpireScript.Do(conn, lock.ResourceName, lock.ResourceName, lock.RandomKey, lock.LiveMillSecondTime))
+	return rep, err
+}
 
+func (s *redisLockFactory) keepAlive(lock *Lock) {
 	isKeepAliveFail := false
 
 	for {
@@ -472,7 +477,7 @@ func (s *redisLockFactory) keepAlive(lock *Lock) {
 		case <-lock.closeChan:
 			// receive a close chan
 			beginTime := time.Now().String()
-			logger.Debugf("start in %v keepAlive %s with random key:%s close", beginTime, lock.ResourceName, lock.RandomKey)
+			Logger.Debugf("start in %v keepAlive %s with random key:%s close", beginTime, lock.ResourceName, lock.RandomKey)
 			if !isKeepAliveFail {
 				lock.IsUnlock = true
 				lock.UnlockMillSecondTime = time.Now().UnixNano() / 1e6
@@ -488,16 +493,16 @@ func (s *redisLockFactory) keepAlive(lock *Lock) {
 
 			beginTime := time.Now().String()
 
-			rep, err := redis.Int64(luaExpireScript.Do(conn, lock.ResourceName, lock.ResourceName, lock.RandomKey, lock.LiveMillSecondTime))
+			rep, err := s.keepAliveSendToRedis(lock)
 			if err != nil {
 				// if redis inner err, retry forever
-				logger.Debugf("start in %v keepAlive %s with random key:%s, err:%s", beginTime, lock.ResourceName, lock.RandomKey, err.Error())
+				Logger.Debugf("start in %v keepAlive %s with random key:%s, err:%s", beginTime, lock.ResourceName, lock.RandomKey, err.Error())
 				continue
 			}
 
 			if rep != 1 {
 				// lock not exist or others grab it
-				logger.Debugf("start in %v keepAlive %s with random key:%s not keepAlive=%v", beginTime, lock.ResourceName, lock.RandomKey, rep)
+				Logger.Debugf("start in %v keepAlive %s with random key:%s not keepAlive=%v", beginTime, lock.ResourceName, lock.RandomKey, rep)
 
 				lock.IsUnlock = true
 				lock.UnlockMillSecondTime = time.Now().UnixNano() / 1e6
@@ -509,7 +514,12 @@ func (s *redisLockFactory) keepAlive(lock *Lock) {
 			}
 
 			lock.LastKeepAliveMillSecondTime = time.Now().UnixNano() / 1e6
-			logger.Debugf("start in %v keepAlive %s with random key:%s doing", beginTime, lock.ResourceName, lock.RandomKey)
+			Logger.Debugf("start in %v keepAlive %s with random key:%s doing", beginTime, lock.ResourceName, lock.RandomKey)
 		}
 	}
+}
+
+// SetDebug for debug
+func SetDebug() {
+	SetLogLevel(DEBUG)
 }
