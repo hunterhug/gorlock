@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/hunterhug/golog v1.0.2
-	github.com/hunterhug/gosession v1.0.12
+	github.com/hunterhug/gosession v1.0.14
 )
 
 require (

@@ -9,8 +9,8 @@ github.com/gomodule/redigo v2.0.0+incompatible h1:K/R+8tc58AaqLkqG2Ol3Qk+DR/TlNu
 github.com/gomodule/redigo v2.0.0+incompatible/go.mod h1:B4C85qUVwatsJoIUNIfCRsp7qO0iAmpGFZ4EELWSbC4=
 github.com/hunterhug/golog v1.0.2 h1:GApjot12vAqNlJLE21kM8VgMh9lMRTSxYOzeLs8eiZk=
 github.com/hunterhug/golog v1.0.2/go.mod h1:tW9dEcCYbQIdLRC2orY7lbZktWV9+COY0pH2V7nzdUM=
-github.com/hunterhug/gosession v1.0.12 h1:5U6yJmTd8964pITNvtYkGbHGp4bNxMorm12RJR9Sf2E=
-github.com/hunterhug/gosession v1.0.12/go.mod h1:yt6XUwdixOE1er5gjUhB0hiBFVsQQIGFIUFoiyWpHNo=
+github.com/hunterhug/gosession v1.0.14 h1:cD04evxHBjKe7bxmDOCC8y3biGc59vQzVME7FHytXog=
+github.com/hunterhug/gosession v1.0.14/go.mod h1:yt6XUwdixOE1er5gjUhB0hiBFVsQQIGFIUFoiyWpHNo=
 github.com/jonboulle/clockwork v0.2.2 h1:UOGuzwb1PwsrDAObMuhUnj0p5ULPj8V/xJ7Kx9qUBdQ=
 github.com/jonboulle/clockwork v0.2.2/go.mod h1:Pkfl5aHPm1nk2H9h0bjmnJD/BcgbGXUBGnn1kMkgxc8=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=

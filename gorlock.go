@@ -141,7 +141,7 @@ func New(pool *redis.Pool) LockFactory {
 }
 
 // NewByRedisConfig One step do everyThing
-func NewByRedisConfig(redisConf kv.MyRedisConf) (LockFactory, error) {
+func NewByRedisConfig(redisConf *kv.MyRedisConf) (LockFactory, error) {
 	pool, err := NewRedisPool(redisConf)
 	if err != nil {
 		return nil, err
@@ -152,13 +152,11 @@ func NewByRedisConfig(redisConf kv.MyRedisConf) (LockFactory, error) {
 }
 
 // NewRedisPool make a redis pool
-func NewRedisPool(redisConf kv.MyRedisConf) (pool *redis.Pool, err error) {
-	return kv.NewRedis(&redisConf)
-}
+var NewRedisPool = kv.NewRedis
 
 // NewRedisSingleModeConfig redis single mode config
-func NewRedisSingleModeConfig(redisHost string, redisDB int, redisPass string) kv.MyRedisConf {
-	return kv.MyRedisConf{
+func NewRedisSingleModeConfig(redisHost string, redisDB int, redisPass string) *kv.MyRedisConf {
+	return &kv.MyRedisConf{
 		RedisHost:        redisHost,
 		RedisPass:        redisPass,
 		RedisDB:          redisDB,
@@ -171,8 +169,8 @@ func NewRedisSingleModeConfig(redisHost string, redisDB int, redisPass string) k
 // NewRedisSentinelModeConfig redis sentinel mode config
 // redisHost is sentinel address, not redis address
 // redisPass is redis password
-func NewRedisSentinelModeConfig(redisHost string, redisDB int, redisPass string, masterName string) kv.MyRedisConf {
-	return kv.MyRedisConf{
+func NewRedisSentinelModeConfig(redisHost string, redisDB int, redisPass string, masterName string) *kv.MyRedisConf {
+	return &kv.MyRedisConf{
 		RedisHost:        redisHost,
 		RedisDB:          redisDB,
 		RedisIdleTimeout: 15,
