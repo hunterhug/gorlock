@@ -131,7 +131,7 @@ func (lock *Lock) Done() chan struct{} {
 // call NewRedisSingleModeConfig and NewRedisSentinelModeConfig then call NewRedisPool
 // you can also call kv.NewRedis for diy redis pool
 func New(pool *redis.Pool) LockFactory {
-	if pool.TestOnBorrow != nil {
+	if pool.TestOnBorrow == nil {
 		pool.TestOnBorrow = func(c redis.Conn, t time.Time) error {
 			if time.Since(t) < time.Minute {
 				return nil
