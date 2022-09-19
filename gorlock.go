@@ -6,6 +6,8 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"github.com/hunterhug/gosession"
 	"github.com/hunterhug/gosession/kv"
+	"io"
+	"strings"
 	"sync"
 	"time"
 )
@@ -110,7 +112,7 @@ type Lock struct {
 // Done judge lock is whether release
 // one example is:
 //
-// 	lockFactory.SetKeepAlive(true).SetRetryCount(-1)
+//	lockFactory.SetKeepAlive(true).SetRetryCount(-1)
 //	lock, _ := lockFactory.Lock(context.Background(), resourceName, expireMillSecond)
 //	if lock != nil {
 //		crontab = true
@@ -129,6 +131,20 @@ func (lock *Lock) Done() chan struct{} {
 // call NewRedisSingleModeConfig and NewRedisSentinelModeConfig then call NewRedisPool
 // you can also call kv.NewRedis for diy redis pool
 func New(pool *redis.Pool) LockFactory {
+	if pool.TestOnBorrow != nil {
+		pool.TestOnBorrow = func(c redis.Conn, t time.Time) error {
+			if time.Since(t) < time.Minute {
+				return nil
+			}
+
+			_, err := c.Do("PING")
+			if err != nil {
+				Logger.Debugf("redis ping err: %s", err.Error())
+			}
+			return err
+		}
+	}
+
 	factory := &redisLockFactory{
 		pool:                       pool,
 		retryLockTryCount:          defaultRetryCount,
@@ -157,12 +173,15 @@ var NewRedisPool = kv.NewRedis
 // NewRedisSingleModeConfig redis single mode config
 func NewRedisSingleModeConfig(redisHost string, redisDB int, redisPass string) *kv.MyRedisConf {
 	return &kv.MyRedisConf{
-		RedisHost:        redisHost,
-		RedisPass:        redisPass,
-		RedisDB:          redisDB,
-		RedisIdleTimeout: 15,
-		RedisMaxActive:   0,
-		RedisMaxIdle:     0,
+		RedisHost:          redisHost,
+		RedisPass:          redisPass,
+		RedisDB:            redisDB,
+		RedisIdleTimeout:   360,
+		RedisMaxActive:     0,
+		RedisMaxIdle:       0,
+		DialConnectTimeout: 20,
+		DialReadTimeout:    20,
+		DialWriteTimeout:   20,
 	}
 }
 
@@ -265,9 +284,29 @@ func (s *redisLockFactory) LockForceNotKeepAlive(ctx context.Context, resourceNa
 	return s.lock(ctx, resourceName, lockMillSecond, false, false)
 }
 
+func IsConnError(err error) bool {
+	var needNewConn bool
+
+	if err == nil {
+		return false
+	}
+
+	if err == io.EOF {
+		needNewConn = true
+	}
+	if strings.Contains(err.Error(), "use of closed network connection") {
+		needNewConn = true
+	}
+	if strings.Contains(err.Error(), "connect: connection refused") {
+		needNewConn = true
+	}
+	return needNewConn
+}
+
 func (s *redisLockFactory) lock(ctx context.Context, resourceName string, lockMillSecond int, useFactoryKeepAlive bool, keepAlive bool) (lock *Lock, err error) {
 	// get redis con
 	conn := s.pool.Get()
+
 	defer func(conn redis.Conn) {
 		err := conn.Close()
 		if err != nil {
@@ -294,6 +333,11 @@ func (s *redisLockFactory) lock(ctx context.Context, resourceName string, lockMi
 			success := false
 
 			if err != nil {
+				if IsConnError(err) {
+					Logger.Debugf("lock start in %v lock %s with random key:%s, expire: %d ms err:%s", beginTime, resourceName, randomKey, lockMillSecond, err.Error())
+					return nil, err
+				}
+
 				// after Redis 2.6.12, set nx will return nil reply if condition not match
 				if err == redis.ErrNil {
 				} else {
@@ -425,6 +469,11 @@ func (s *redisLockFactory) UnLock(ctx context.Context, lock *Lock) (isUnLock boo
 			rep, err := redis.Int64(luaDelScript.Do(conn, lock.ResourceName, lock.RandomKey))
 			if err != nil {
 				Logger.Debugf("UnLock start in %v unlock %s with random key:%s, err:%s", beginTime, lock.ResourceName, lock.RandomKey, err.Error())
+
+				if IsConnError(err) {
+					return false, err
+				}
+
 				if retry != 0 {
 					time.Sleep(time.Duration(s.retryUnLockMillSecondDelay) * time.Millisecond)
 					continue
@@ -433,7 +482,7 @@ func (s *redisLockFactory) UnLock(ctx context.Context, lock *Lock) (isUnLock boo
 			}
 
 			if rep != 1 {
-				// no err but the lock is not exist, may be expire or grab by others
+				// no err but the lock is not exist, may be expired or grab by others
 				Logger.Debugf("UnLock start in %v unlock %s with random key:%s not unlock", beginTime, lock.ResourceName, lock.RandomKey)
 				return false, nil
 			}
