@@ -443,7 +443,9 @@ func (s *redisLockFactory) UnLock(ctx context.Context, lock *Lock) (isUnLock boo
 		lock.UnlockMillSecondTime = time.Now().UnixNano() / 1e6
 
 		// close a close chan
-		close(lock.closeChan)
+		if lock.closeChan != nil {
+			close(lock.closeChan)
+		}
 
 		// unlock chan send
 		lock.isUnlockChan <- struct{}{}
